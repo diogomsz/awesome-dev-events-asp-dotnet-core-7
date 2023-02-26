@@ -80,14 +80,16 @@ public class DevEventsController : ControllerBase
     [HttpPost("{id}/speakers")]
     public IActionResult PostSpeaker(Guid id, DevEventSpeaker speaker)
     {
-        var devEvent = _context.DevEvents.SingleOrDefault(d => d.Id == id);
+        speaker.DevEventId = id;
+        var devEvent = _context.DevEvents.Any(d => d.Id == id);
 
         if (devEvent == null)
         {
             return NotFound();
         }
 
-        devEvent.Speakers.Add(speaker);
+        _context.DevEventsSpeakers.Add(speaker);   
+        _context.SaveChanges();
         return NoContent();
     }
 }
