@@ -1,7 +1,7 @@
 ﻿using AwesomeDevEvents.API.Entities;
 using AwesomeDevEvents.API.Persistence;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AwesomeDevEvents.API.Controllers;
 
@@ -26,7 +26,9 @@ public class DevEventsController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetById(Guid id)
     {
-        var devEvent = _context.DevEvents.SingleOrDefault(d => d.Id == id);
+        var devEvent = _context.DevEvents
+            .Include(devEvent => devEvent.Speakers)
+            .SingleOrDefault(d => d.Id == id);
 
         if(devEvent == null)
         {
@@ -40,6 +42,7 @@ public class DevEventsController : ControllerBase
     public IActionResult Post(DevEvent devEvent)
     {
         _context.DevEvents.Add(devEvent);
+        _context.SaveChanges();
         return CreatedAtAction(nameof(GetById), new {id = devEvent.Id}, devEvent);
     }
 
@@ -54,6 +57,8 @@ public class DevEventsController : ControllerBase
         }
 
         devEvent.Update(input.Title, input.Description, input.StartDate, input.EndDate);
+        _context.DevEvents.Update(devEvent);
+        _context.SaveChanges();
         return NoContent();
     }
 
@@ -68,6 +73,7 @@ public class DevEventsController : ControllerBase
         }
 
         devEvent.Delete();
+        _context.SaveChanges();
         return NoContent();
     }
 
